@@ -1,0 +1,53 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Additional ignore item added by myself
+# building folder
+BUILD
+
+# mbed library folder
+mbed-os
+
+# unused files
+.tags
+.tags_sorted_by_file
+.DS_Store
+.mbed
+mbed_settings.py
+mbed_settings.pyc
+
+# scripts
+build.py
+debug.py
+
+# backup of repo
+.git
