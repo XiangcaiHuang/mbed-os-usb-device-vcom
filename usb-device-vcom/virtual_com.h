@@ -34,13 +34,16 @@
 #ifndef _USB_CDC_VCOM_H_
 #define _USB_CDC_VCOM_H_ 1
 
+// #include "FreeRTOS.h"
+// #include "semphr.h"
+// #include "event_groups.h"
+
 /*******************************************************************************
 * Definitions
 ******************************************************************************/
 #if defined(USB_DEVICE_CONFIG_EHCI) && (USB_DEVICE_CONFIG_EHCI > 0)
 #define CONTROLLER_ID kUSB_ControllerEhci0
 #define DATA_BUFF_SIZE HS_CDC_VCOM_BULK_OUT_PACKET_SIZE
-
 #endif
 #if defined(USB_DEVICE_CONFIG_KHCI) && (USB_DEVICE_CONFIG_KHCI > 0)
 #define CONTROLLER_ID kUSB_ControllerKhci0
@@ -58,7 +61,11 @@
 #define DATA_BUFF_SIZE HS_CDC_VCOM_BULK_OUT_PACKET_SIZE
 #endif
 
+#if defined(__GIC_PRIO_BITS)
+#define USB_DEVICE_INTERRUPT_PRIORITY (25U)
+#else
 #define USB_DEVICE_INTERRUPT_PRIORITY (3U)
+#endif
 
 /* Currently configured line coding */
 #define LINE_CODING_SIZE (0x07)
@@ -83,7 +90,9 @@ typedef struct _usb_cdc_vcom_struct
     usb_device_handle deviceHandle; /* USB device handle. */
     class_handle_t cdcAcmHandle; /* USB CDC ACM class handle.                                                         */
     volatile uint8_t attach;     /* A flag to indicate whether a usb device is attached. 1: attached, 0: not attached */
-    uint8_t speed;               /* Speed of USB device. USB_SPEED_FULL/USB_SPEED_LOW/USB_SPEED_HIGH.                 */
+    // TaskHandle_t deviceTaskHandle;      /* USB device task handle. */
+    // TaskHandle_t applicationTaskHandle; /* Application task handle. */
+    uint8_t speed; /* Speed of USB device. USB_SPEED_FULL/USB_SPEED_LOW/USB_SPEED_HIGH.                 */
     volatile uint8_t
         startTransactions; /* A flag to indicate whether a CDC device is ready to transmit and receive data.    */
     uint8_t currentConfiguration; /* Current configuration value. */
