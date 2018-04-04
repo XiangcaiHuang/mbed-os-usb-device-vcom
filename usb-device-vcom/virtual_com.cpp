@@ -32,9 +32,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "mbed.h"
 #include "fsl_device_registers.h"
-#include "clock_config.h"
-#include "board.h"
+#include "fsl_clock_config.h"
+// #include "clock_config.h"
+// #include "board.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,12 +48,13 @@
 #include "usb_device_class.h"
 #include "usb_device_cdc_acm.h"
 #include "usb_device_ch9.h"
-#include "fsl_debug_console.h"
+// #include "fsl_debug_console.h"
 
 #include "usb_device_descriptor.h"
 #include "virtual_com.h"
 #if (defined(FSL_FEATURE_SOC_SYSMPU_COUNT) && (FSL_FEATURE_SOC_SYSMPU_COUNT > 0U))
-#include "fsl_sysmpu.h"
+#include "fsl_mpu.h"
+// #include "fsl_sysmpu.h"
 #endif /* FSL_FEATURE_SOC_SYSMPU_COUNT */
 
 #if defined(USB_DEVICE_CONFIG_EHCI) && (USB_DEVICE_CONFIG_EHCI > 0)
@@ -62,7 +65,7 @@
     defined(FSL_FEATURE_USB_KHCI_USB_RAM) && (FSL_FEATURE_USB_KHCI_USB_RAM > 0U)
 extern uint8_t USB_EnterLowpowerMode(void);
 #endif
-#include "pin_mux.h"
+// #include "pin_mux.h"
 /*******************************************************************************
 * Definitions
 ******************************************************************************/
@@ -627,15 +630,11 @@ void APPTask(void)
     }
 }
 
-#if defined(__CC_ARM) || defined(__GNUC__)
 int main(void)
-#else
-void main(void)
-#endif
 {
-    BOARD_InitPins();
-    BOARD_BootClockRUN();
-    BOARD_InitDebugConsole();
+    // BOARD_InitPins();
+    // BOARD_BootClockRUN();
+    // BOARD_InitDebugConsole();
 
     APPInit();
 
