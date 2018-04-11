@@ -48,6 +48,9 @@ mbed_settings.pyc
 # scripts
 build.py
 debug.py
+config.py
+config.pyc
+.gdbinit
 
 # backup of repo
 .git
