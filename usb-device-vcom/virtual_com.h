@@ -49,7 +49,6 @@
 #include "usb_device_ch9.h"
 
 #include "usb_device_descriptor.h"
-#include "virtual_com.h"
 #if (defined(FSL_FEATURE_SOC_MPU_COUNT) && (FSL_FEATURE_SOC_MPU_COUNT > 0U))
 #include "fsl_mpu.h"
 #endif /* FSL_FEATURE_SOC_MPU_COUNT */
@@ -129,7 +128,7 @@ extern volatile uint32_t s_recvSize;
 
 extern USB_DMA_NONINIT_DATA_ALIGN(USB_DATA_ALIGN_SIZE) uint8_t s_currRecvBuf[DATA_BUFF_SIZE];
 
-void APPInit(void);
+void USB_Init(void);
 void USB_DeviceTaskFn(void *deviceHandle);
 
 #endif /* _USB_CDC_VCOM_H_ */

@@ -454,7 +454,7 @@ usb_status_t USB_DeviceCallback(usb_device_handle handle, uint32_t event, void *
  *
  * @return None.
  */
-void APPInit(void)
+void USB_Init(void)
 {
     USB_DeviceClockInit();
 
@@ -473,7 +473,7 @@ void APPInit(void)
     }
     else
     {
-        usb_echo("USB device CDC virtual com demo\r\n");
+        usb_echo("USB device CDC virtual com init OK\r\n");
         s_cdcVcom.cdcAcmHandle = s_cdcAcmConfigList.config->classHandle;
     }
 
@@ -482,6 +482,6 @@ void APPInit(void)
     int res = USB_DeviceRun(s_cdcVcom.deviceHandle);
     if (res == kStatus_USB_Success)
     {
-        usb_echo("The device is run successfully\r\n");
+        usb_echo("USB device is running\r\n");
     }
 }
