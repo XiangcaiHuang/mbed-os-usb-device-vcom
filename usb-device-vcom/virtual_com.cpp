@@ -32,51 +32,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "mbed.h"
-#include "fsl_device_registers.h"
-#include "fsl_clock_config.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "usb_device_config.h"
-#include "usb.h"
-#include "usb_device.h"
-
-#include "usb_device_class.h"
-#include "usb_device_cdc_acm.h"
-#include "usb_device_ch9.h"
-
-#include "usb_device_descriptor.h"
 #include "virtual_com.h"
-#if (defined(FSL_FEATURE_SOC_MPU_COUNT) && (FSL_FEATURE_SOC_MPU_COUNT > 0U))
-#include "fsl_mpu.h"
-#endif /* FSL_FEATURE_SOC_MPU_COUNT */
-
-#if defined(USB_DEVICE_CONFIG_EHCI) && (USB_DEVICE_CONFIG_EHCI > 0)
-#include "usb_phy.h"
-#endif
-#if defined(FSL_FEATURE_USB_KHCI_KEEP_ALIVE_ENABLED) && (FSL_FEATURE_USB_KHCI_KEEP_ALIVE_ENABLED > 0U) && \
-    defined(USB_DEVICE_CONFIG_KEEP_ALIVE_MODE) && (USB_DEVICE_CONFIG_KEEP_ALIVE_MODE > 0U) &&             \
-    defined(FSL_FEATURE_USB_KHCI_USB_RAM) && (FSL_FEATURE_USB_KHCI_USB_RAM > 0U)
-extern uint8_t USB_EnterLowpowerMode(void);
-#endif
-/*******************************************************************************
-* Definitions
-******************************************************************************/
 
 /*******************************************************************************
  * Prototypes
  ******************************************************************************/
-void BOARD_InitHardware(void);
 void USB_DeviceClockInit(void);
 void USB_DeviceIsrEnable(void);
-#if USB_DEVICE_CONFIG_USE_TASK
-void USB_DeviceTaskFn(void *deviceHandle);
-#endif
 
-void BOARD_DbgConsole_Deinit(void);
-void BOARD_DbgConsole_Init(void);
 usb_status_t USB_DeviceCdcVcomCallback(class_handle_t handle, uint32_t event, void *param);
 usb_status_t USB_DeviceCallback(usb_device_handle handle, uint32_t event, void *param);
 
@@ -85,8 +48,6 @@ usb_status_t USB_DeviceCallback(usb_device_handle handle, uint32_t event, void *
 ******************************************************************************/
 extern usb_device_endpoint_struct_t g_UsbDeviceCdcVcomDicEndpoints[];
 extern usb_device_class_struct_t g_UsbDeviceCdcVcomConfig;
-/* Data structure of virtual com device */
-usb_cdc_vcom_struct_t s_cdcVcom;
 
 /* Line codinig of cdc device */
 USB_DMA_INIT_DATA_ALIGN(USB_DATA_ALIGN_SIZE) static uint8_t s_lineCoding[LINE_CODING_SIZE] = {
@@ -109,11 +70,6 @@ USB_DMA_INIT_DATA_ALIGN(USB_DATA_ALIGN_SIZE) static uint8_t s_countryCode[COMM_F
 
 /* CDC ACM information */
 USB_DMA_NONINIT_DATA_ALIGN(USB_DATA_ALIGN_SIZE) static usb_cdc_acm_info_t s_usbCdcAcmInfo;
-/* Data buffer for receiving and sending*/
-USB_DMA_NONINIT_DATA_ALIGN(USB_DATA_ALIGN_SIZE) static uint8_t s_currRecvBuf[DATA_BUFF_SIZE];
-USB_DMA_NONINIT_DATA_ALIGN(USB_DATA_ALIGN_SIZE) static uint8_t s_currSendBuf[DATA_BUFF_SIZE];
-volatile static uint32_t s_recvSize = 0;
-volatile static uint32_t s_sendSize = 0;
 
 /* USB device class information */
 static usb_device_class_config_struct_t s_cdcAcmConfig[1] = {{
@@ -168,12 +124,11 @@ void USB_DeviceIsrEnable(void)
     EnableIRQ((IRQn_Type)irqNumber);
 }
 
-#if USB_DEVICE_CONFIG_USE_TASK
 void USB_DeviceTaskFn(void *deviceHandle)
 {
     USB_DeviceKhciTaskFunction(deviceHandle);
 }
-#endif
+
 /*!
  * @brief CDC class specific callback function.
  *
@@ -528,62 +483,5 @@ void APPInit(void)
     if (res == kStatus_USB_Success)
     {
         usb_echo("The device is run successfully\r\n");
-    }
-}
-
-/*!
- * @brief Application task function.
- *
- * This function runs the task for application.
- *
- * @return None.
- */
-void APPTask(void)
-{
-    usb_status_t error = kStatus_USB_Error;
-
-    // when the USB is attached to host then attach == 1
-    // when the USB VCOM port is opened then startTransactions == 1
-    if ((1 == s_cdcVcom.attach) && (1 == s_cdcVcom.startTransactions))
-    {
-        if ((0 != s_recvSize) && (0xFFFFFFFFU != s_recvSize))
-        {
-            printf("Data received[%ld]: %s\r\n", s_recvSize, (char *)s_currRecvBuf);
-            uint32_t i;
-
-            /* Copy Buffer to Send Buff */
-            for (i = 0; i < s_recvSize; i++)
-            {
-                s_currSendBuf[s_sendSize++] = s_currRecvBuf[i];
-            }
-            s_recvSize = 0;
-        }
-
-        if (s_sendSize)
-        {
-            uint32_t size = s_sendSize;
-            s_sendSize = 0;
-
-            printf("Try to send[%ld]: %s\r\n", size, (char *)s_currSendBuf);
-            error = USB_DeviceCdcAcmSend(s_cdcVcom.cdcAcmHandle, USB_CDC_VCOM_BULK_IN_ENDPOINT, s_currSendBuf, size);
-            if (error != kStatus_USB_Success)
-            {
-                printf("Failed to send\r\n");
-            }
-        }
-    }
-}
-
-int main(void)
-{
-    APPInit();
-
-    while (1)
-    {
-        APPTask();
-
-#if USB_DEVICE_CONFIG_USE_TASK
-        USB_DeviceTaskFn(s_cdcVcom.deviceHandle);
-#endif
     }
 }

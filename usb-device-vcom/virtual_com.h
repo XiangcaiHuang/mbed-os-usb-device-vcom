@@ -34,6 +34,26 @@
 #ifndef _USB_CDC_VCOM_H_
 #define _USB_CDC_VCOM_H_ 1
 
+#include "fsl_device_registers.h"
+#include "fsl_clock_config.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "usb_device_config.h"
+#include "usb.h"
+#include "usb_device.h"
+
+#include "usb_device_class.h"
+#include "usb_device_cdc_acm.h"
+#include "usb_device_ch9.h"
+
+#include "usb_device_descriptor.h"
+#include "virtual_com.h"
+#if (defined(FSL_FEATURE_SOC_MPU_COUNT) && (FSL_FEATURE_SOC_MPU_COUNT > 0U))
+#include "fsl_mpu.h"
+#endif /* FSL_FEATURE_SOC_MPU_COUNT */
+
 /*******************************************************************************
 * Definitions
 ******************************************************************************/
@@ -102,4 +122,14 @@ typedef struct _usb_cdc_acm_info
     uint8_t currentInterface; /* Current interface index.                           */
     uint16_t uartState;       /* UART state of the CDC device.                      */
 } usb_cdc_acm_info_t;
+
+/* Data structure of virtual com device */
+extern usb_cdc_vcom_struct_t s_cdcVcom;
+extern volatile uint32_t s_recvSize;
+
+extern USB_DMA_NONINIT_DATA_ALIGN(USB_DATA_ALIGN_SIZE) uint8_t s_currRecvBuf[DATA_BUFF_SIZE];
+
+void APPInit(void);
+void USB_DeviceTaskFn(void *deviceHandle);
+
 #endif /* _USB_CDC_VCOM_H_ */
