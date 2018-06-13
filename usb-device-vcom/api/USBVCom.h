@@ -10,7 +10,7 @@ class USBVCom
 {
 public:
 	USBVCom();
-	// USBVCom(vcomRecHandler isr, uint8_t *buff);
+	USBVCom(vcomRecHandler isr, uint8_t *buff);
 
 	void process(void);
 

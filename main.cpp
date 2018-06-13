@@ -2,61 +2,100 @@
 // USB-Uart baudRate 9600
 // USB-Vcom baudRate 115200
 
-// USB-Uart's Output:
+#include "mbed.h"
+#include "USBVCom.h"
+
+#define EXAMPLE_ISR   0
+#define EXAMPLE_QUERY 1
+#define EXAMPLE_APP   EXAMPLE_ISR
+
+static uint8_t userRxBuff[DATA_BUFF_SIZE];
+
+#if (EXAMPLE_APP == EXAMPLE_ISR)
+// USB-Uart output:
 /*
 USB FS clock enabled using ISR 48MHz
 USB device CDC virtual com init OK
 USB device is running
-
-Sent[19]: Nice to meet you!
-
-Sent[19]: Nice to meet you!
-
-Received[3]: 123
-Sent[23]: VCOM Send Test start:
-
-Times - [1]
-Sent[3]: 123
-Times - [2]
-Sent[3]: 123
-Times - [3]
-Sent[3]: 123
+Sent[16]: Read and write testing start:
+userRxBuff[6]: 123456
+Sent[16]: Read and write testing start:
+userRxBuff[4]: abed
 */
 
-// USB-Vcom's Output:
+// USB-VCOM output:
 /*
-Nice to meet you!
-Nice to meet you!
-VCOM Send Test start:
-123123123
+Read and write testing start:
+123456
+Read and write testing start:
+abed
 */
-#include "mbed.h"
-#include "USBVCom.h"
+static void userUSBVComISR(uint32_t rxLen);
+USBVCom mVcom(userUSBVComISR, userRxBuff);
 
-// uint8_t userRxBuff[DATA_BUFF_SIZE];
-
-// void userUSBVComISR(uint32_t rxLen)
-// {
-//     printf("userRxBuff[%d]: %s\r\n", rxLen, (char *)userRxBuff);
-// }
-
-USBVCom vcom;
-// USBVCom vcom(userUSBVComISR, userRxBuff);
-
-extern USB_DMA_NONINIT_DATA_ALIGN(USB_DATA_ALIGN_SIZE) uint8_t s_currRecvBuf[DATA_BUFF_SIZE];
-// extern volatile uint32_t s_recvSize;
-
-void vcom_handle_received(void)
+static void userUSBVComISR(uint32_t rxLen)
 {
-    printf("s_currRecvBuf: %s\r\n", (char *)s_currRecvBuf);
-    // printf("s_currRecvBuf[%d]: %s\r\n", s_recvSize, (char *)s_currRecvBuf);
-    s_recvSize = 0;
+    mVcom.print("Read and write testing start:\r\n");
+    mVcom.write(userRxBuff, rxLen);
+
+    printf("userRxBuff[%d]: %s", rxLen, (char *)userRxBuff);
+    memset(userRxBuff, 0, sizeof(uint8_t) * rxLen);
 }
 
 int main(void)
 {
     while (1)
     {
-        vcom.process();
+        mVcom.process();
     }
 }
+
+#else
+// USB-Uart output:
+/*
+USB FS clock enabled using ISR 48MHz
+USB device CDC virtual com init OK
+USB device is running
+Sent[29]: Read and write testing start:
+Received[7]: abcdefg
+Sent[7]: abcdefg
+Sent[29]: Read and write testing start:
+Received[3]: 123
+Sent[3]: 123
+*/
+
+// USB-VCOM output:
+/*
+Read and write testing start:
+abcdefg
+Read and write testing start:
+123
+*/
+USBVCom mVcom;
+
+static void read_query(void)
+{
+    uint32_t rxLen = mVcom.isReadable();
+    if (rxLen)
+    {
+        mVcom.print("Read and write testing start:\r\n");
+
+        mVcom.read(userRxBuff, rxLen);
+        printf("Received[%d]: %s\r\n", rxLen, (char *)userRxBuff);
+
+        mVcom.write(userRxBuff, rxLen);
+        memset(userRxBuff, 0, sizeof(uint8_t) * rxLen);
+
+        rxLen = 0;
+    }
+}
+
+int main(void)
+{
+    while (1)
+    {
+        read_query();
+        mVcom.process();
+    }
+}
+#endif // EXAMPLE_APP

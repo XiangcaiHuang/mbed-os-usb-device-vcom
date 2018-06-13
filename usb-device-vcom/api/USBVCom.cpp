@@ -6,31 +6,37 @@ volatile uint32_t s_recvSize = 0;
 USB_DMA_NONINIT_DATA_ALIGN(USB_DATA_ALIGN_SIZE) uint8_t s_currRecvBuf[DATA_BUFF_SIZE];
 USB_DMA_NONINIT_DATA_ALIGN(USB_DATA_ALIGN_SIZE) uint8_t _txBuf[DATA_BUFF_SIZE];
 
-// static uint8_t *_userRxBuf;
-// static vcomRecHandler _userRxISR;
+static uint8_t *_userRxBuf = NULL;
+static vcomRecHandler _userRxISR = NULL;
 
 USBVCom::USBVCom()
-// USBVCom::USBVCom(vcomRecHandler isr, uint8_t *buff)
 {
     USB_Init();
-
     _checkInit();
-
-    // _userRxBuf = buff;
-    // _userRxISR = isr;
 }
 
-// void vcom_handle_received(void)
-// {
-//     if (_userRxBuf)
-//     {
-//         for (int i = 0; i < s_recvSize; ++i)
-//             _userRxBuf[i] = s_currRecvBuf[i];
+USBVCom::USBVCom(vcomRecHandler isr, uint8_t *buff)
+{
+    USB_Init();
+    _checkInit();
 
-//         _userRxISR(s_recvSize);
-//         s_recvSize = 0;
-//     }
-// }
+    _userRxBuf = buff;
+    _userRxISR = isr;
+}
+
+void vcom_handle_received(void)
+{
+    if (_userRxBuf)
+    {
+        for (int i = 0; i < s_recvSize; ++i)
+            _userRxBuf[i] = s_currRecvBuf[i];
+
+        if (_userRxISR)
+            _userRxISR(s_recvSize);
+
+        s_recvSize = 0;
+    }
+}
 
 void USBVCom::process(void)
 {
