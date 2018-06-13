@@ -40,14 +40,7 @@ void USBVCom::_checkInit(void)
 
 void USBVCom::print(char *msg)
 {
-    uint32_t len = strlen(msg);
-    if (len > DATA_BUFF_SIZE)
-        len = DATA_BUFF_SIZE;
-
-    for (uint32_t i = 0; i < len; ++i)
-        TxBuf[i] = (uint8_t)msg[i];
-
-    write(TxBuf, len);
+    write((uint8_t *)msg, strlen(msg));
 }
 
 uint32_t USBVCom::isReadable(void)
@@ -66,9 +59,18 @@ usb_status_t USBVCom::write(uint8_t *buffer, uint32_t length)
 {
     if (_initOK)
     {
-        if (USB_DeviceCdcAcmSend(s_cdcVcom.cdcAcmHandle, USB_CDC_VCOM_BULK_IN_ENDPOINT, buffer, length) == kStatus_USB_Success)
+        if (length > DATA_BUFF_SIZE)
+            length = DATA_BUFF_SIZE;
+
+        for (uint32_t i = 0; i < length; ++i)
+            TxBuf[i] = buffer[i];
+
+        if (USB_DeviceCdcAcmSend(s_cdcVcom.cdcAcmHandle,
+                                 USB_CDC_VCOM_BULK_IN_ENDPOINT,
+                                 TxBuf, length) == kStatus_USB_Success)
         {
-            printf("Sent[%ld]: %s\r\n", length, (char *)buffer);
+            printf("Sent[%ld]: %s\r\n", length, (char *)TxBuf);
+            memset(TxBuf, 0, sizeof(uint8_t) * length);
         }
 
         // process() must be called after sending via VCOM to clear the flag - isBusy
