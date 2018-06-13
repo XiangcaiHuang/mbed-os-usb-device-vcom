@@ -4,10 +4,13 @@
 #include "mbed.h"
 #include "virtual_com.h"
 
+typedef void (*vcomRecHandler)(uint32_t);
+
 class USBVCom
 {
 public:
 	USBVCom();
+	// USBVCom(vcomRecHandler isr, uint8_t *buff);
 
 	void process(void);
 
@@ -21,7 +24,7 @@ public:
 
 private:
 	void _checkInit(void);
-	
+
 	bool _isAttached(void);
 
 	bool _isStarted(void);

@@ -33,41 +33,30 @@ VCOM Send Test start:
 #include "mbed.h"
 #include "USBVCom.h"
 
-/* Data buffer for receiving and sending*/
-USB_DMA_NONINIT_DATA_ALIGN(USB_DATA_ALIGN_SIZE) uint8_t rec_buff[DATA_BUFF_SIZE];
+// uint8_t userRxBuff[DATA_BUFF_SIZE];
+
+// void userUSBVComISR(uint32_t rxLen)
+// {
+//     printf("userRxBuff[%d]: %s\r\n", rxLen, (char *)userRxBuff);
+// }
 
 USBVCom vcom;
+// USBVCom vcom(userUSBVComISR, userRxBuff);
 
-void APPTask(void)
+extern USB_DMA_NONINIT_DATA_ALIGN(USB_DATA_ALIGN_SIZE) uint8_t s_currRecvBuf[DATA_BUFF_SIZE];
+// extern volatile uint32_t s_recvSize;
+
+void vcom_handle_received(void)
 {
-    char *str = "Nice to meet you!\r\n";
-
-    uint32_t len = vcom.isReadable();
-    if (len)
-    {
-        vcom.print(str);
-        vcom.write((uint8_t *)str, strlen(str));
-
-        vcom.read(rec_buff, len);
-        printf("Received[%ld]: %s\r\n", len, (char *)rec_buff);
-
-        vcom.print("VCOM Send Test start:\r\n");
-        for (int i = 0; i < 3; ++i)
-        {
-            printf("Times - [%d]\r\n", i + 1);
-            vcom.write(rec_buff, len);
-        }
-
-        memset(rec_buff, 0, sizeof(uint8_t) * len);
-        len = 0;
-    }
+    printf("s_currRecvBuf: %s\r\n", (char *)s_currRecvBuf);
+    // printf("s_currRecvBuf[%d]: %s\r\n", s_recvSize, (char *)s_currRecvBuf);
+    s_recvSize = 0;
 }
 
 int main(void)
 {
     while (1)
     {
-        APPTask();
         vcom.process();
     }
 }

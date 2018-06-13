@@ -131,4 +131,6 @@ extern USB_DMA_NONINIT_DATA_ALIGN(USB_DATA_ALIGN_SIZE) uint8_t s_currRecvBuf[DAT
 void USB_Init(void);
 void USB_DeviceTaskFn(void *deviceHandle);
 
+void vcom_handle_received(void);
+
 #endif /* _USB_CDC_VCOM_H_ */

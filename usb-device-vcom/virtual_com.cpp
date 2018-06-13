@@ -181,6 +181,7 @@ usb_status_t USB_DeviceCdcVcomCallback(class_handle_t handle, uint32_t event, vo
             if ((1 == s_cdcVcom.attach) && (1 == s_cdcVcom.startTransactions))
             {
                 s_recvSize = epCbParam->length;
+                vcom_handle_received();
                 if (!s_recvSize)
                 {
                     /* Schedule buffer for next receive event */
