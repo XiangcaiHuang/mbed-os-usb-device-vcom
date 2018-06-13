@@ -1,3 +1,15 @@
+// Notice:
+// USB-Uart baudRate 9600
+// USB-Vcom baudRate 115200
+
+// USB-Uart's Output:
+/*
+USB FS clock enabled using ISR 48MHz
+USB device CDC virtual com init OK
+USB device is running
+Received[6]: 123456
+Sent[6]: 123456
+*/
 #include "mbed.h"
 #include "USBVCom.h"
 
@@ -8,31 +20,29 @@ USBVCom vcom;
 
 void APPTask(void)
 {
-    if (vcom.isAttached() && vcom.isStarted())
+    uint32_t len = vcom.isReadable();
+    if (len)
     {
-        uint32_t len = vcom.isReadable();
-        if (len)
+        vcom.read(rec_buff, len);
+        printf("Received[%ld]: %s\r\n", len, (char *)rec_buff);
+
+        vcom.print("VCOM Test start:\r\n");
+        for (int i = 0; i < 3; ++i)
         {
-            vcom.read(rec_buff, len);
-            printf("Received[%ld]: %s\r\n", len, (char *)rec_buff);
-
-            if (vcom.write(rec_buff, len) != kStatus_USB_Success)
-                printf("Failed to send\r\n");
-            else
-                printf("Sent[%ld]: %s\r\n", len, (char *)rec_buff);
-
-            memset(rec_buff, 0, sizeof(uint8_t) * len);
-            len = 0;
+            printf("Times - [%d]\r\n", i + 1);
+            vcom.write(rec_buff, len);
         }
+
+        memset(rec_buff, 0, sizeof(uint8_t) * len);
+        len = 0;
     }
 }
-
 
 int main(void)
 {
     while (1)
     {
         APPTask();
-        vcom.run();
+        vcom.process();
     }
 }

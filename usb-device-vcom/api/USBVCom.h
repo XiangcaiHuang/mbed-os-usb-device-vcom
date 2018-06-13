@@ -9,11 +9,9 @@ class USBVCom
 public:
 	USBVCom();
 
-	void run(void);
+	void process(void);
 
-	bool isAttached(void);
-
-	bool isStarted(void);
+	void print(char *msg);
 
 	uint32_t isReadable(void);
 
@@ -22,6 +20,12 @@ public:
 	usb_status_t read(uint8_t *buffer, uint32_t length);
 
 private:
+	void _checkInit(void);
+	
+	bool _isAttached(void);
 
+	bool _isStarted(void);
+
+	bool _initOK;
 };
 #endif
