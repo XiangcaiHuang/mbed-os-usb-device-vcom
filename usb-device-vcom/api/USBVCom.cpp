@@ -4,6 +4,7 @@ usb_cdc_vcom_struct_t s_cdcVcom;
 
 volatile uint32_t s_recvSize = 0;
 USB_DMA_NONINIT_DATA_ALIGN(USB_DATA_ALIGN_SIZE) uint8_t s_currRecvBuf[DATA_BUFF_SIZE];
+USB_DMA_NONINIT_DATA_ALIGN(USB_DATA_ALIGN_SIZE) uint8_t TxBuf[DATA_BUFF_SIZE];
 
 USBVCom::USBVCom()
 {
@@ -40,11 +41,13 @@ void USBVCom::_checkInit(void)
 void USBVCom::print(char *msg)
 {
     uint32_t len = strlen(msg);
-    // Don't print too more at one time
     if (len > DATA_BUFF_SIZE)
         len = DATA_BUFF_SIZE;
 
-    write((uint8_t *)msg, len);
+    for (uint32_t i = 0; i < len; ++i)
+        TxBuf[i] = (uint8_t)msg[i];
+
+    write(TxBuf, len);
 }
 
 uint32_t USBVCom::isReadable(void)
