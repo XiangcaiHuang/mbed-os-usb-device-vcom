@@ -51,6 +51,7 @@ debug.py
 config.py
 config.pyc
 .gdbinit
+download.py
 
 # backup of repo
 .git
