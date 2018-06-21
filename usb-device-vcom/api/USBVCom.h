@@ -16,6 +16,8 @@ public:
 
 	void print(char *msg);
 
+	bool isOpened(void);
+
 	uint32_t isReadable(void);
 
 	usb_status_t write(uint8_t *buffer, uint32_t length);
@@ -23,12 +25,10 @@ public:
 	usb_status_t read(uint8_t *buffer, uint32_t length);
 
 private:
-	void _checkInit(void);
+	bool _checkInit(void);
 
 	bool _isAttached(void);
 
 	bool _isStarted(void);
-
-	bool _initOK;
 };
 #endif

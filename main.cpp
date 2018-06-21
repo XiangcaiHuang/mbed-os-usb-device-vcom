@@ -38,7 +38,7 @@ static void userUSBVComISR(uint32_t rxLen)
     mVcom.print("Read and write testing start:\r\n");
     mVcom.write(userRxBuff, rxLen);
 
-    printf("userRxBuff[%d]: %s", rxLen, (char *)userRxBuff);
+    printf("userRxBuff[%d]: %s\r\n", rxLen, (char *)userRxBuff);
     memset(userRxBuff, 0, sizeof(uint8_t) * rxLen);
 }
 

@@ -55,12 +55,14 @@ bool USBVCom::_isStarted(void)
     return (1 == s_cdcVcom.startTransactions) ? true : false;
 }
 
-void USBVCom::_checkInit(void)
+bool USBVCom::isOpened(void)
 {
-    if (_isAttached() && _isStarted())
-        _initOK = true;
-    else
-        _initOK = false;
+    return (_isAttached() && _isStarted());
+}
+
+bool USBVCom::_checkInit(void)
+{
+    return _isAttached();
 }
 
 void USBVCom::print(char *msg)
@@ -70,19 +72,18 @@ void USBVCom::print(char *msg)
 
 uint32_t USBVCom::isReadable(void)
 {
-    if (_initOK)
+    if (_checkInit())
     {
         if ((0 != s_recvSize) && (0xFFFFFFFFU != s_recvSize))
             return s_recvSize;
     }
 
-    _checkInit();
     return 0;
 }
 
 usb_status_t USBVCom::write(uint8_t *buffer, uint32_t length)
 {
-    if (_initOK)
+    if (_checkInit())
     {
         if (length > DATA_BUFF_SIZE)
             length = DATA_BUFF_SIZE;
@@ -90,27 +91,27 @@ usb_status_t USBVCom::write(uint8_t *buffer, uint32_t length)
         for (uint32_t i = 0; i < length; ++i)
             _txBuf[i] = buffer[i];
 
-        if (USB_DeviceCdcAcmSend(s_cdcVcom.cdcAcmHandle,
-                                 USB_CDC_VCOM_BULK_IN_ENDPOINT,
-                                 _txBuf, length) == kStatus_USB_Success)
-        {
-            printf("Sent[%ld]: %s\r\n", length, (char *)_txBuf);
-            memset(_txBuf, 0, sizeof(uint8_t) * length);
-        }
+        usb_status_t err = USB_DeviceCdcAcmSend(s_cdcVcom.cdcAcmHandle,
+                                                USB_CDC_VCOM_BULK_IN_ENDPOINT,
+                                                _txBuf, length);
+
+        // printf("USBVCom::write[%ld]: %s\r\n", length, (char *)_txBuf);
+        // must delay here for making sure all data has enough time to be sent
+        wait_ms(5);
+        memset(_txBuf, 0, sizeof(uint8_t) * length);
 
         // process() must be called after sending via VCOM to clear the flag - isBusy
         // by calling USB_DeviceCdcAcmBulkIn()
         process();
-        return kStatus_USB_Success;
+        return err;
     }
 
-    _checkInit();
     return kStatus_USB_Error;
 }
 
 usb_status_t USBVCom::read(uint8_t *buffer, uint32_t length)
 {
-    if (_initOK)
+    if (_checkInit())
     {
         if (length > s_recvSize)
         {
@@ -127,6 +128,5 @@ usb_status_t USBVCom::read(uint8_t *buffer, uint32_t length)
         return kStatus_USB_Success;
     }
 
-    _checkInit();
     return kStatus_USB_Error;
 }
