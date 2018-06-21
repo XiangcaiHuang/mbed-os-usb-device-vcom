@@ -4,6 +4,8 @@
 #include "mbed.h"
 #include "virtual_com.h"
 
+#define MAX_DATA_SIZE_SEND (DATA_BUFF_SIZE - 20)
+
 typedef void (*vcomRecHandler)(uint32_t);
 
 class USBVCom
